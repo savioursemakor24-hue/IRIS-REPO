@@ -469,10 +469,7 @@ def predict_iris(sl, sw, pl, pw):
     intercept = MODEL_PARAMS["lr_intercept"]
     classes = MODEL_PARAMS["classes"]
 
-    # Scale inputs
     x_scaled = [(features[i] - mean[i]) / scale[i] for i in range(4)]
-
-    # Linear scores
     scores = []
     for c in range(len(classes)):
         score = intercept[c]
@@ -480,7 +477,6 @@ def predict_iris(sl, sw, pl, pw):
             score += coef[c][f] * x_scaled[f]
         scores.append(score)
 
-    # Softmax
     max_score = max(scores)
     exp_scores = [math.exp(s - max_score) for s in scores]
     sum_exp = sum(exp_scores)
@@ -497,9 +493,12 @@ def predict_iris(sl, sw, pl, pw):
     return pred_class, conf_pct, probs_dict
 
 # -------------------------------------------------------------
-# Routes
+# Explicit & Catch-All Routes
 # -------------------------------------------------------------
 @app.route("/", methods=["GET"])
+@app.route("/api/index.py", methods=["GET"])
+@app.route("/api/index", methods=["GET"])
+@app.route("/api", methods=["GET"])
 def index():
     preset_name = request.args.get("preset", "").lower()
     vals = PRESETS.get(preset_name, {"sepal_length": 5.8, "sepal_width": 3.0, "petal_length": 3.7, "petal_width": 1.2})
@@ -518,6 +517,7 @@ def index():
     )
 
 @app.route("/predict", methods=["POST"])
+@app.route("/api/index.py/predict", methods=["POST"])
 def predict():
     try:
         sl = float(request.form.get("sepal_length", 5.8))
@@ -541,6 +541,7 @@ def predict():
         )
 
 @app.route("/sample-csv", methods=["GET"])
+@app.route("/api/index.py/sample-csv", methods=["GET"])
 def sample_csv():
     sample_data = "sepal_length,sepal_width,petal_length,petal_width\n5.1,3.5,1.4,0.2\n4.9,3.0,1.4,0.2\n5.7,2.8,4.5,1.3\n6.3,3.3,4.7,1.6\n6.3,3.3,6.0,2.5\n7.1,3.0,5.9,2.1"
     buf = io.BytesIO(sample_data.encode("utf-8"))
@@ -548,6 +549,7 @@ def sample_csv():
     return send_file(buf, mimetype="text/csv", as_attachment=True, download_name="iris_sample_test_batch.csv")
 
 @app.route("/batch-predict", methods=["POST"])
+@app.route("/api/index.py/batch-predict", methods=["POST"])
 def batch_predict():
     if "file" not in request.files:
         return "No file provided", 400
@@ -601,6 +603,13 @@ def api_predict():
         "probabilities": {k: v / 100.0 for k, v in probs_dict.items()},
         "input_features": {"sepal_length": sl, "sepal_width": sw, "petal_length": pl, "petal_width": pw}
     })
+
+# Universal catch-all for any internal rewrite paths
+@app.route("/<path:subpath>", methods=["GET", "POST"])
+def catch_all(subpath):
+    if request.method == "POST":
+        return predict()
+    return index()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000, debug=False)
