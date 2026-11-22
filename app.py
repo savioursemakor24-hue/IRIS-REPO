@@ -7,14 +7,24 @@ from flask import Flask, request, jsonify, render_template_string, send_file, re
 app = Flask(__name__)
 
 # -------------------------------------------------------------
-# Embedded Pure HTML5 & CSS3 Template
+# Embedded Mobile-Optimized HTML5 & CSS3 Template (PWA Enabled)
 # -------------------------------------------------------------
 HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Iris Classification System - Live on Vercel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Iris AI - Mobile Flower Classifier</title>
+  
+  <!-- Mobile & PWA App Metadata -->
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/static/icons/icon.svg">
+  <link rel="apple-touch-icon" href="/static/icons/icon.svg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="IrisAI">
+  <meta name="theme-color" content="#0f172a">
+
   <style>
     :root {
       --bg-main: #0f172a;
@@ -33,142 +43,143 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       --versicolor-light: rgba(14, 165, 233, 0.15);
       --virginica: #a855f7;
       --virginica-light: rgba(168, 85, 247, 0.15);
-      --radius-sm: 6px;
-      --radius-md: 10px;
-      --radius-lg: 16px;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
       --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background-color: var(--bg-main);
       color: var(--text-main);
       line-height: 1.5;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      touch-action: manipulation;
     }
     header {
-      background-color: rgba(30, 41, 59, 0.8);
-      backdrop-filter: blur(8px);
+      background-color: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border-color);
-      padding: 1rem 1.5rem;
+      padding: 0.85rem 1.25rem;
       position: sticky;
       top: 0;
       z-index: 100;
     }
     .header-container {
-      max-width: 1100px;
+      max-width: 1000px;
       margin: 0 auto;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .brand { display: flex; align-items: center; gap: 0.75rem; }
+    .brand { display: flex; align-items: center; gap: 0.65rem; }
     .brand-icon {
-      font-size: 1.5rem;
+      font-size: 1.35rem;
       background: var(--primary-light);
       border: 1px solid rgba(99, 102, 241, 0.3);
-      width: 42px;
-      height: 42px;
+      width: 38px;
+      height: 38px;
       border-radius: var(--radius-md);
       display: flex;
       align-items: center;
       justify-content: center;
     }
-    .brand h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em; }
-    .brand p { font-size: 0.75rem; color: var(--text-muted); }
-    .badge {
-      font-size: 0.7rem;
-      font-weight: 600;
-      padding: 0.25rem 0.6rem;
-      border-radius: 9999px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .badge-vercel {
-      background-color: rgba(255, 255, 255, 0.1);
+    .brand h1 { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.02em; }
+    .brand p { font-size: 0.7rem; color: var(--text-muted); }
+    .btn-install {
+      background: var(--primary);
       color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border: none;
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+      transition: transform 0.1s ease;
     }
-    .badge-status {
-      background-color: var(--setosa-light);
-      color: var(--setosa);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-    }
+    .btn-install:active { transform: scale(0.96); }
     main {
-      max-width: 1100px;
+      max-width: 1000px;
       width: 100%;
-      margin: 2rem auto;
-      padding: 0 1.5rem;
+      margin: 1.25rem auto;
+      padding: 0 1rem;
       flex: 1;
     }
     .grid-two-col {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
+      gap: 1.25rem;
     }
-    @media (max-width: 768px) { .grid-two-col { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) {
+      .grid-two-col { grid-template-columns: 1fr; }
+      main { margin: 0.75rem auto; }
+    }
     .card {
       background-color: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
-      padding: 1.5rem;
+      padding: 1.25rem;
       box-shadow: var(--shadow);
     }
-    .card-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; }
-    .card-subtitle { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1.25rem; }
-    .presets-group { margin-bottom: 1.5rem; }
+    .card-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.2rem; }
+    .card-subtitle { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 1rem; }
+    .presets-group { margin-bottom: 1.25rem; }
     .presets-label {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       font-weight: 600;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.4rem;
       display: block;
     }
     .presets-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 0.5rem;
+      gap: 0.4rem;
     }
     .preset-btn {
       background: var(--bg-main);
       border: 1px solid var(--border-color);
       color: var(--text-main);
       border-radius: var(--radius-sm);
-      padding: 0.5rem;
+      padding: 0.45rem 0.25rem;
       font-size: 0.75rem;
       font-weight: 600;
       cursor: pointer;
       text-align: center;
-      transition: all 0.2s ease;
       text-decoration: none;
       display: block;
     }
-    .preset-btn:hover { border-color: var(--primary); background: var(--primary-light); }
-    .preset-btn span { display: block; font-size: 0.65rem; color: var(--text-dim); font-family: monospace; margin-top: 2px; }
-    .form-group { margin-bottom: 1.25rem; }
+    .preset-btn:active { background: var(--primary-light); border-color: var(--primary); }
+    .preset-btn span { display: block; font-size: 0.62rem; color: var(--text-dim); font-family: monospace; margin-top: 1px; }
+    .form-group { margin-bottom: 1.15rem; }
     .form-label-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.35rem;
     }
     .form-label { font-size: 0.8rem; font-weight: 500; color: var(--text-main); }
     .form-value-pill {
       font-family: monospace;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: 700;
       background: var(--primary-light);
       color: var(--primary);
-      padding: 0.15rem 0.5rem;
+      padding: 0.15rem 0.45rem;
       border-radius: var(--radius-sm);
     }
     .input-slider {
       width: 100%;
-      height: 6px;
+      height: 8px;
       background: var(--border-color);
       border-radius: 9999px;
       outline: none;
@@ -177,17 +188,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
     .input-slider::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 18px;
-      height: 18px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
       background: var(--primary);
       cursor: pointer;
-      box-shadow: 0 0 8px rgba(99, 102, 241, 0.6);
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.7);
     }
     .range-bounds {
       display: flex;
       justify-content: space-between;
-      font-size: 0.65rem;
+      font-size: 0.62rem;
       color: var(--text-dim);
       margin-top: 0.25rem;
       font-family: monospace;
@@ -198,46 +209,46 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       color: #ffffff;
       border: none;
       border-radius: var(--radius-md);
-      padding: 0.75rem 1rem;
+      padding: 0.8rem 1rem;
       font-size: 0.875rem;
       font-weight: 600;
       cursor: pointer;
-      transition: background-color 0.2s ease;
       display: flex;
       justify-content: center;
       align-items: center;
       gap: 0.5rem;
-      margin-top: 1.5rem;
+      margin-top: 1.25rem;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
     }
-    .btn-submit:hover { background-color: var(--primary-hover); }
+    .btn-submit:active { background-color: var(--primary-hover); transform: scale(0.98); }
     .result-display {
       text-align: center;
-      padding: 1.5rem 0;
+      padding: 1.25rem 0;
       border-bottom: 1px solid var(--border-color);
     }
-    .result-icon { font-size: 3rem; margin-bottom: 0.5rem; }
-    .result-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; }
-    .result-species { font-size: 1.85rem; font-weight: 800; text-transform: capitalize; margin: 0.25rem 0; letter-spacing: -0.02em; }
+    .result-icon { font-size: 3rem; margin-bottom: 0.35rem; }
+    .result-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; }
+    .result-species { font-size: 1.75rem; font-weight: 800; text-transform: capitalize; margin: 0.2rem 0; letter-spacing: -0.02em; }
     .species-setosa { color: var(--setosa); }
     .species-versicolor { color: var(--versicolor); }
     .species-virginica { color: var(--virginica); }
     .result-confidence {
       display: inline-block;
       font-family: monospace;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 700;
-      padding: 0.25rem 0.75rem;
+      padding: 0.25rem 0.7rem;
       border-radius: 9999px;
-      margin-top: 0.5rem;
+      margin-top: 0.4rem;
     }
     .conf-setosa { background: var(--setosa-light); color: var(--setosa); border: 1px solid rgba(16, 185, 129, 0.3); }
     .conf-versicolor { background: var(--versicolor-light); color: var(--versicolor); border: 1px solid rgba(14, 165, 233, 0.3); }
     .conf-virginica { background: var(--virginica-light); color: var(--virginica); border: 1px solid rgba(168, 85, 247, 0.3); }
-    .result-desc { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; max-width: 320px; margin-left: auto; margin-right: auto; }
-    .probabilities { padding-top: 1.25rem; }
-    .prob-header { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
-    .prob-row { margin-bottom: 0.75rem; }
-    .prob-row-labels { display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem; }
+    .result-desc { font-size: 0.76rem; color: var(--text-muted); margin-top: 0.65rem; max-width: 320px; margin-left: auto; margin-right: auto; }
+    .probabilities { padding-top: 1.15rem; }
+    .prob-header { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .prob-row { margin-bottom: 0.65rem; }
+    .prob-row-labels { display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.2rem; }
     .prob-species-name { display: flex; align-items: center; gap: 0.4rem; font-weight: 500; }
     .prob-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
     .dot-setosa { background-color: var(--setosa); }
@@ -249,28 +260,28 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     .fill-setosa { background-color: var(--setosa); }
     .fill-versicolor { background-color: var(--versicolor); }
     .fill-virginica { background-color: var(--virginica); }
-    .metrics-section { margin-top: 2rem; }
+    .metrics-section { margin-top: 1.5rem; }
     .metrics-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 1rem;
-      margin-top: 1rem;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
     }
     @media (max-width: 768px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
     .metric-box {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
-      padding: 1rem;
+      padding: 0.85rem;
     }
-    .metric-box-title { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; }
-    .metric-box-val { font-size: 1.5rem; font-weight: 800; font-family: monospace; margin: 0.25rem 0; color: #38bdf8; }
-    .metric-box-sub { font-size: 0.7rem; color: var(--text-muted); }
-    .batch-upload-form { display: flex; flex-direction: column; gap: 1rem; }
+    .metric-box-title { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; }
+    .metric-box-val { font-size: 1.35rem; font-weight: 800; font-family: monospace; margin: 0.2rem 0; color: #38bdf8; }
+    .metric-box-sub { font-size: 0.68rem; color: var(--text-muted); }
+    .batch-upload-form { display: flex; flex-direction: column; gap: 0.75rem; }
     .upload-zone {
       border: 2px dashed var(--border-color);
       border-radius: var(--radius-md);
-      padding: 1.25rem;
+      padding: 1rem;
       text-align: center;
       background-color: var(--bg-main);
     }
@@ -281,13 +292,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       color: var(--text-main);
       border-radius: var(--radius-md);
       padding: 0.65rem 1rem;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 600;
       cursor: pointer;
     }
-    .download-link { font-size: 0.75rem; color: var(--text-muted); text-align: center; text-decoration: none; }
-    .download-link:hover { color: var(--primary); text-decoration: underline; }
-    footer { border-top: 1px solid var(--border-color); padding: 1.5rem; text-align: center; font-size: 0.75rem; color: var(--text-dim); margin-top: auto; }
+    .download-link { font-size: 0.72rem; color: var(--text-muted); text-align: center; text-decoration: none; }
+    footer { border-top: 1px solid var(--border-color); padding: 1.25rem; text-align: center; font-size: 0.7rem; color: var(--text-dim); margin-top: auto; }
   </style>
 </head>
 <body>
@@ -296,14 +306,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       <div class="brand">
         <div class="brand-icon">🌸</div>
         <div>
-          <h1>Iris Classification System</h1>
-          <p>Powered by Python 3.11, scikit-learn, and Pure HTML/CSS on Vercel</p>
+          <h1>Iris AI Mobile</h1>
+          <p>Machine Learning Classifier</p>
         </div>
       </div>
-      <div>
-        <span class="badge badge-vercel">▲ Vercel Serverless</span>
-        <span class="badge badge-status">Active</span>
-      </div>
+      <button id="pwaInstallBtn" onclick="installPWA()" class="btn-install">
+        <span>📲 Install App</span>
+      </button>
     </div>
   </header>
 
@@ -312,7 +321,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       <!-- Input Form -->
       <div class="card">
         <h2 class="card-title">Morphological Input Parameters</h2>
-        <p class="card-subtitle">Adjust the 4 floral measurements and submit to the Python classifier.</p>
+        <p class="card-subtitle">Adjust the 4 floral measurements and submit to the classifier.</p>
 
         <div class="presets-group">
           <span class="presets-label">Preset Benchmark Samples</span>
@@ -406,24 +415,24 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     </div>
 
     <!-- Batch Card -->
-    <div class="card" style="margin-top: 1.5rem;">
+    <div class="card" style="margin-top: 1.25rem;">
       <h2 class="card-title">Batch CSV Classification</h2>
       <p class="card-subtitle">Upload a CSV file containing multiple flower measurements to download batch predictions.</p>
       <form action="/batch-predict" method="POST" enctype="multipart/form-data" class="batch-upload-form">
         <div class="upload-zone">
-          <input type="file" name="file" accept=".csv" required style="font-size: 0.8rem; color: var(--text-main);">
+          <input type="file" name="file" accept=".csv" required style="font-size: 0.75rem; color: var(--text-main);">
         </div>
-        <div style="display: flex; gap: 1rem; align-items: center;">
-          <button type="submit" class="btn-secondary" style="flex: 1;">📊 Process & Download Predictions CSV</button>
+        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+          <button type="submit" class="btn-secondary" style="flex: 1; min-width: 200px;">📊 Process & Download Predictions CSV</button>
           <a href="/sample-csv" class="download-link">📥 Download Sample CSV Template</a>
         </div>
       </form>
     </div>
 
-    <!-- Metrics Section -->
+    <!-- Metrics Summary -->
     <div class="metrics-section">
       <h2 class="card-title">Model Architecture & Verification Benchmark</h2>
-      <p class="card-subtitle">Trained on Fisher's Iris Dataset using scikit-learn with 5-Fold Stratified Cross-Validation.</p>
+      <p class="card-subtitle">Trained on Fisher's Iris Dataset with 5-Fold Stratified Cross-Validation.</p>
       <div class="metrics-grid">
         <div class="metric-box"><div class="metric-box-title">Hold-out Accuracy</div><div class="metric-box-val">96.67%</div><div class="metric-box-sub">29 / 30 test samples correct</div></div>
         <div class="metric-box"><div class="metric-box-title">Macro F1-Score</div><div class="metric-box-val">0.9666</div><div class="metric-box-sub">Balanced multi-class</div></div>
@@ -434,8 +443,34 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   </main>
 
   <footer>
-    <p>Iris Machine Learning System &bull; Built with Python, HTML5, and CSS3 &bull; Deployed on Vercel</p>
+    <p>Iris AI Mobile App &bull; Installable PWA &bull; Machine Learning on Vercel</p>
   </footer>
+
+  <!-- Service Worker & PWA Install Handler -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW registration:', err));
+      });
+    }
+
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const btn = document.getElementById('pwaInstallBtn');
+      if (btn) btn.style.display = 'inline-flex';
+    });
+
+    function installPWA() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+      } else {
+        alert("📲 To install this app on your phone:\n• On iPhone: Tap the Share button (⎙) in Safari, then 'Add to Home Screen'.\n• On Android: Tap the 3 dots (⋮) in Chrome, then 'Install App' or 'Add to Home screen'.");
+      }
+    }
+  </script>
 </body>
 </html>
 """
@@ -493,7 +528,7 @@ def predict_iris(sl, sw, pl, pw):
     return pred_class, conf_pct, probs_dict
 
 # -------------------------------------------------------------
-# Explicit & Catch-All Routes
+# Routes
 # -------------------------------------------------------------
 @app.route("/", methods=["GET"])
 @app.route("/api/index.py", methods=["GET"])
@@ -515,6 +550,68 @@ def index():
         confidence=conf_pct,
         probs=probs_dict
     )
+
+@app.route("/manifest.json", methods=["GET"])
+@app.route("/api/index.py/manifest.json", methods=["GET"])
+def manifest():
+    manifest_data = {
+        "name": "Iris AI Flower Classifier",
+        "short_name": "IrisAI",
+        "description": "Machine learning mobile app for identifying Iris flower species in real-time.",
+        "start_url": "/",
+        "display": "standalone",
+        "background_color": "#0f172a",
+        "theme_color": "#0f172a",
+        "orientation": "portrait",
+        "icons": [
+            {
+                "src": "/static/icons/icon.svg",
+                "sizes": "512x512",
+                "type": "image/svg+xml",
+                "purpose": "any maskable"
+            }
+        ],
+        "categories": ["education", "utilities", "productivity"]
+    }
+    return jsonify(manifest_data)
+
+@app.route("/sw.js", methods=["GET"])
+@app.route("/api/index.py/sw.js", methods=["GET"])
+def service_worker():
+    sw_code = """
+const CACHE_NAME = 'iris-ai-v1';
+self.addEventListener('install', (e) => { self.skipWaiting(); });
+self.addEventListener('activate', (e) => { self.clients.claim(); });
+self.addEventListener('fetch', (e) => {
+  if (e.request.method !== 'GET') return;
+  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+});
+"""
+    return app.response_class(sw_code, mimetype="application/javascript")
+
+@app.route("/static/icons/icon.svg", methods=["GET"])
+@app.route("/api/index.py/static/icons/icon.svg", methods=["GET"])
+def icon_svg():
+    svg_data = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="50%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="115" fill="url(#bg)"/>
+  <g transform="translate(256, 260)">
+    <path d="M0 -150 C40 -90, 60 -30, 0 20 C-60 -30, -40 -90, 0 -150 Z" fill="#c084fc" opacity="0.9"/>
+    <path d="M-110 -90 C-80 -40, -40 10, 0 20 C-50 -10, -90 -40, -110 -90 Z" fill="#a855f7" opacity="0.85"/>
+    <path d="M110 -90 C80 -40, 40 10, 0 20 C50 -10, 90 -40, 110 -90 Z" fill="#a855f7" opacity="0.85"/>
+    <path d="M0 20 C-80 50, -120 120, -70 170 C-20 200, -10 90, 0 20 Z" fill="#38bdf8"/>
+    <path d="M0 20 C80 50, 120 120, 70 170 C20 200, 10 90, 0 20 Z" fill="#38bdf8"/>
+    <path d="M0 20 C-40 70, -30 150, 0 180 C30 150, 40 70, 0 20 Z" fill="#60a5fa"/>
+    <ellipse cx="0" cy="50" rx="12" ry="24" fill="#fbbf24"/>
+  </g>
+</svg>"""
+    return app.response_class(svg_data, mimetype="image/svg+xml")
 
 @app.route("/predict", methods=["POST"])
 @app.route("/api/index.py/predict", methods=["POST"])
@@ -583,7 +680,7 @@ def batch_predict():
 def api_predict():
     if request.method == "GET":
         return jsonify({
-            "service": "Iris Classification API (Vercel Serverless)",
+            "service": "Iris Classification API (Mobile Ready)",
             "status": "healthy",
             "features": ["sepal_length", "sepal_width", "petal_length", "petal_width"],
             "classes": ["setosa", "versicolor", "virginica"]
