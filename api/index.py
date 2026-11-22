@@ -1,8 +1,7 @@
 import os
 import io
-import json
+import csv
 import math
-import pandas as pd
 from flask import Flask, request, jsonify, render_template_string, send_file, redirect, url_for
 
 app = Flask(__name__)
@@ -543,13 +542,7 @@ def predict():
 
 @app.route("/sample-csv", methods=["GET"])
 def sample_csv():
-    sample_data = """sepal_length,sepal_width,petal_length,petal_width
-5.1,3.5,1.4,0.2
-4.9,3.0,1.4,0.2
-5.7,2.8,4.5,1.3
-6.3,3.3,4.7,1.6
-6.3,3.3,6.0,2.5
-7.1,3.0,5.9,2.1"""
+    sample_data = "sepal_length,sepal_width,petal_length,petal_width\n5.1,3.5,1.4,0.2\n4.9,3.0,1.4,0.2\n5.7,2.8,4.5,1.3\n6.3,3.3,4.7,1.6\n6.3,3.3,6.0,2.5\n7.1,3.0,5.9,2.1"
     buf = io.BytesIO(sample_data.encode("utf-8"))
     buf.seek(0)
     return send_file(buf, mimetype="text/csv", as_attachment=True, download_name="iris_sample_test_batch.csv")
@@ -560,20 +553,24 @@ def batch_predict():
         return "No file provided", 400
     file = request.files["file"]
     try:
-        df = pd.read_csv(file)
-        cols_map = {col: col.strip().lower().replace(" ", "_").replace("_(cm)", "").replace("(cm)", "") for col in df.columns}
-        df_norm = df.rename(columns=cols_map)
-        
-        preds, confs = [], []
-        for _, row in df_norm.iterrows():
-            p_class, conf, _ = predict_iris(row["sepal_length"], row["sepal_width"], row["petal_length"], row["petal_width"])
-            preds.append(p_class)
-            confs.append(f"{conf}%")
-        df["predicted_species"] = preds
-        df["confidence"] = confs
-        
+        stream = io.StringIO(file.stream.read().decode("utf-8"), newline=None)
+        reader = csv.DictReader(stream)
         out_io = io.StringIO()
-        df.to_csv(out_io, index=False)
+        fieldnames = list(reader.fieldnames or []) + ["predicted_species", "confidence"]
+        writer = csv.DictWriter(out_io, fieldnames=fieldnames)
+        writer.writeheader()
+        
+        for row in reader:
+            clean = {k.strip().lower().replace(" ", "_").replace("_(cm)", "").replace("(cm)", ""): v for k, v in row.items()}
+            sl = float(clean.get("sepal_length", 5.8))
+            sw = float(clean.get("sepal_width", 3.0))
+            pl = float(clean.get("petal_length", 3.7))
+            pw = float(clean.get("petal_width", 1.2))
+            p_class, conf, _ = predict_iris(sl, sw, pl, pw)
+            row["predicted_species"] = p_class
+            row["confidence"] = f"{conf}%"
+            writer.writerow(row)
+            
         out_bytes = io.BytesIO(out_io.getvalue().encode("utf-8"))
         out_bytes.seek(0)
         return send_file(out_bytes, mimetype="text/csv", as_attachment=True, download_name="iris_batch_predictions.csv")
