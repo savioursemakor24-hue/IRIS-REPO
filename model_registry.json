@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "registry": "Antigravity Model Registry",
+  "model_id": "iris-multi-class-rf",
+  "model_name": "Iris Flower Multi-Class Classifier",
+  "version": "1.0.0",
+  "status": "PRODUCTION",
+  "created_at": "2026-11-21T22:50:00Z",
+  "framework": {
+    "name": "scikit-learn",
+    "version": "1.9.1",
+    "runtime": "Python 3.11.18"
+  },
+  "dataset": {
+    "source": "scikit-learn.datasets.load_iris",
+    "original_dataset": "Fisher's Iris Dataset (1936)",
+    "total_samples": 150,
+    "features_count": 4,
+    "classes_count": 3,
+    "class_distribution": {
+      "setosa": 50,
+      "versicolor": 50,
+      "virginica": 50
+    }
+  },
+  "signature": {
+    "inputs": [
+      {
+        "name": "sepal_length",
+        "type": "float",
+        "unit": "centimeters",
+        "domain": [4.3, 7.9],
+        "mean": 5.8433,
+        "std": 0.8281
+      },
+      {
+        "name": "sepal_width",
+        "type": "float",
+        "unit": "centimeters",
+        "domain": [2.0, 4.4],
+        "mean": 3.0573,
+        "std": 0.4359
+      },
+      {
+        "name": "petal_length",
+        "type": "float",
+        "unit": "centimeters",
+        "domain": [1.0, 6.9],
+        "mean": 3.7580,
+        "std": 1.7653
+      },
+      {
+        "name": "petal_width",
+        "type": "float",
+        "unit": "centimeters",
+        "domain": [0.1, 2.5],
+        "mean": 1.1993,
+        "std": 0.7622
+      }
+    ],
+    "outputs": [
+      {
+        "name": "prediction",
+        "type": "string",
+        "allowed_values": ["setosa", "versicolor", "virginica"]
+      },
+      {
+        "name": "class_index",
+        "type": "integer",
+        "allowed_values": [0, 1, 2]
+      },
+      {
+        "name": "confidence",
+        "type": "float",
+        "domain": [0.0, 1.0]
+      },
+      {
+        "name": "probabilities",
+        "type": "object",
+        "properties": {
+          "setosa": "float",
+          "versicolor": "float",
+          "virginica": "float"
+        }
+      }
+    ]
+  },
+  "architecture": {
+    "primary_model": "RandomForestClassifier",
+    "hyperparameters": {
+      "n_estimators": 100,
+      "max_depth": 4,
+      "random_state": 42,
+      "criterion": "gini"
+    },
+    "feature_importances": {
+      "petal length (cm)": 0.4377,
+      "petal width (cm)": 0.4359,
+      "sepal length (cm)": 0.1156,
+      "sepal width (cm)": 0.0108
+    }
+  },
+  "benchmark_comparison": {
+    "5_fold_cross_validation": {
+      "Random Forest": { "mean_accuracy": 0.9500, "std_dev": 0.0312, "f1_macro": 0.9494 },
+      "Logistic Regression": { "mean_accuracy": 0.9583, "std_dev": 0.0264, "f1_macro": 0.9580 },
+      "Support Vector Machine": { "mean_accuracy": 0.9667, "std_dev": 0.0167, "f1_macro": 0.9665 },
+      "k-Nearest Neighbors": { "mean_accuracy": 0.9583, "std_dev": 0.0264, "f1_macro": 0.9580 }
+    }
+  },
+  "evaluation_metrics": {
+    "test_split_ratio": 0.20,
+    "test_samples": 30,
+    "accuracy": 0.9667,
+    "precision_macro": 0.9697,
+    "precision_weighted": 0.9697,
+    "recall_macro": 0.9667,
+    "recall_weighted": 0.9667,
+    "f1_score_macro": 0.9666,
+    "f1_score_weighted": 0.9666,
+    "roc_auc_ovr": 0.9883,
+    "confusion_matrix": {
+      "labels": ["setosa", "versicolor", "virginica"],
+      "matrix": [
+        [10, 0, 0],
+        [0, 9, 1],
+        [0, 0, 10]
+      ]
+    }
+  },
+  "deployment": {
+    "platform": "Vercel Serverless Functions",
+    "entrypoint": "api/predict.py",
+    "configuration": "vercel.json",
+    "frontend": "public/index.html",
+    "api_endpoint": "/api/predict",
+    "deployment_methods": [
+      "Vercel CLI: vercel deploy --prod",
+      "GitHub Integration: Import repository directly into Vercel Dashboard"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "models/iris_rf_model_full.joblib",
+      "type": "scikit-learn serialized pipeline",
+      "description": "Full production model trained on complete Iris dataset"
+    },
+    {
+      "path": "models/iris_rf_model.joblib",
+      "type": "scikit-learn serialized pipeline",
+      "description": "Model trained on 80% train split for evaluation reproduction"
+    },
+    {
+      "path": "portable_model.json",
+      "type": "portable weights schema",
+      "description": "Zero-dependency client & micro-serverless inference parameters"
+    }
+  ]
+}

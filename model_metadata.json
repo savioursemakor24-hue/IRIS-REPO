@@ -1,0 +1,180 @@
+{
+  "model_name": "Iris Multi-Class Classifier",
+  "model_version": "1.0.0",
+  "algorithm": "RandomForestClassifier",
+  "hyperparameters": {
+    "n_estimators": 100,
+    "max_depth": 4,
+    "random_state": 42
+  },
+  "dataset": {
+    "name": "Fisher's Iris Dataset (via scikit-learn)",
+    "total_samples": 150,
+    "n_features": 4,
+    "feature_names": [
+      "sepal length (cm)",
+      "sepal width (cm)",
+      "petal length (cm)",
+      "petal width (cm)"
+    ],
+    "feature_ranges": {
+      "sepal length (cm)": {
+        "min": 4.3,
+        "max": 7.9,
+        "mean": 5.843333333333334
+      },
+      "sepal width (cm)": {
+        "min": 2.0,
+        "max": 4.4,
+        "mean": 3.0573333333333337
+      },
+      "petal length (cm)": {
+        "min": 1.0,
+        "max": 6.9,
+        "mean": 3.7580000000000005
+      },
+      "petal width (cm)": {
+        "min": 0.1,
+        "max": 2.5,
+        "mean": 1.1993333333333336
+      }
+    },
+    "target_names": [
+      "setosa",
+      "versicolor",
+      "virginica"
+    ],
+    "target_mapping": {
+      "0": "setosa",
+      "1": "versicolor",
+      "2": "virginica"
+    }
+  },
+  "evaluation_metrics": {
+    "test_accuracy": 0.9666666666666667,
+    "precision_macro": 0.9696969696969697,
+    "precision_weighted": 0.9696969696969696,
+    "recall_macro": 0.9666666666666667,
+    "recall_weighted": 0.9666666666666667,
+    "f1_macro": 0.9665831244778612,
+    "f1_weighted": 0.9665831244778613,
+    "roc_auc_ovr": 0.9883333333333333,
+    "cross_validation_5fold": {
+      "Random Forest": {
+        "accuracy_mean": 0.95,
+        "accuracy_std": 0.0311804782231162,
+        "f1_macro_mean": 0.9494055399937753,
+        "scores": [
+          0.9583333333333334,
+          1.0,
+          0.9583333333333334,
+          0.9166666666666666,
+          0.9166666666666666
+        ]
+      },
+      "Logistic Regression": {
+        "accuracy_mean": 0.9583333333333334,
+        "accuracy_std": 0.026352313834736508,
+        "f1_macro_mean": 0.9579707438530969,
+        "scores": [
+          0.9583333333333334,
+          1.0,
+          0.9583333333333334,
+          0.9583333333333334,
+          0.9166666666666666
+        ]
+      },
+      "Support Vector Machine (SVC)": {
+        "accuracy_mean": 0.9666666666666668,
+        "accuracy_std": 0.016666666666666653,
+        "f1_macro_mean": 0.9665359477124185,
+        "scores": [
+          0.9583333333333334,
+          1.0,
+          0.9583333333333334,
+          0.9583333333333334,
+          0.9583333333333334
+        ]
+      },
+      "k-Nearest Neighbors": {
+        "accuracy_mean": 0.9583333333333334,
+        "accuracy_std": 0.026352313834736508,
+        "f1_macro_mean": 0.9579707438530969,
+        "scores": [
+          0.9583333333333334,
+          1.0,
+          0.9583333333333334,
+          0.9166666666666666,
+          0.9583333333333334
+        ]
+      }
+    }
+  },
+  "confusion_matrix": {
+    "labels": [
+      "setosa",
+      "versicolor",
+      "virginica"
+    ],
+    "matrix": [
+      [
+        10,
+        0,
+        0
+      ],
+      [
+        0,
+        9,
+        1
+      ],
+      [
+        0,
+        0,
+        10
+      ]
+    ]
+  },
+  "classification_report": {
+    "setosa": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 10.0
+    },
+    "versicolor": {
+      "precision": 1.0,
+      "recall": 0.9,
+      "f1-score": 0.9473684210526315,
+      "support": 10.0
+    },
+    "virginica": {
+      "precision": 0.9090909090909091,
+      "recall": 1.0,
+      "f1-score": 0.9523809523809523,
+      "support": 10.0
+    },
+    "accuracy": 0.9666666666666667,
+    "macro avg": {
+      "precision": 0.9696969696969697,
+      "recall": 0.9666666666666667,
+      "f1-score": 0.9665831244778612,
+      "support": 30.0
+    },
+    "weighted avg": {
+      "precision": 0.9696969696969696,
+      "recall": 0.9666666666666667,
+      "f1-score": 0.9665831244778613,
+      "support": 30.0
+    }
+  },
+  "feature_importances": {
+    "sepal length (cm)": 0.1156,
+    "sepal width (cm)": 0.0108,
+    "petal length (cm)": 0.4377,
+    "petal width (cm)": 0.4359
+  },
+  "artifacts": {
+    "model_joblib": "models/iris_rf_model_full.joblib",
+    "eval_model_joblib": "models/iris_rf_model.joblib"
+  }
+}
